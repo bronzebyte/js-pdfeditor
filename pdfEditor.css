@@ -1,0 +1,28 @@
+.canvas-container {
+  position: relative;
+  margin: auto;
+  margin-top: 20px;
+}
+.text-layer {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: none;
+}
+.text-layer span {
+  position: absolute;
+  white-space: nowrap;
+  line-height: 1;
+  pointer-events: auto;
+  background: white;
+  cursor: text;
+}
+
+
+
+.MainDiv span{
+  color: transparent;
+}

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF.js Text Layer Rendering</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link href="./pdfEditor.css" rel="stylesheet"/>
+  </head>
+  <body>
+    <input type="file" id="file-input" accept="application/pdf" />
+    <button id="edit-btn" style="display: none">Edit PDF</button>
+    <button id="download-btn" class="hidden">Download PDF</button>
+    <script src="./pdfEditor.js"></script>
+  </body>
+</html>

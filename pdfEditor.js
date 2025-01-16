@@ -5,10 +5,7 @@ document
   .getElementById("file-input")
   .addEventListener("change", function (event) {
     const file = event.target.files[0];
-    // console.log(file, "file+++++++")
     fileName.push(file?.name)
-
-    // console.log(fileName[0], "fileNameee")
     if (file) {
       const reader = new FileReader();
       reader.onload = function (e) {
@@ -46,118 +43,119 @@ document
                 textLayer.className = "text-layer";
                 textLayer.style.pointerEvents = "none";
                 canvasContainer.appendChild(textLayer);
-                // console.log(viewport.scale, "viewportviewport");
+
                 page.getTextContent().then(function (textContent) {
                   const textItems = textContent.items;
+                  const tolerance = 20;
 
-                  textItems.forEach((item) => {
+                  let paragraphs = [];
+                  let currentParagraph = [];
+                  let lastY = textItems[0]?.transform[5];
 
-                    console.log(item, "item+++=");
-                    const { transform, str } = item;
-                    const [fontScaleX, , , fontScaleY, x, y] = transform;
+                  textItems.forEach((item, index) => {
+                    const currentY = item.transform[5];
 
-                    const adjustedX = x * viewport.scale;
-                    const adjustedY = canvas.height - y * viewport.scale;
-
-                    const div = document.createElement("div");
-                    const span = document.createElement("span");
-                    const urlRegex = /(https?:\/\/[^\s]+)/g;
-                    const isUrl = urlRegex.test(str);
-
-
-                    if (isUrl) {
-                      // Create a clickable link if the text is a URL
-                      const link = document.createElement("a");
-                      link.href = str;
-                      link.textContent = str;
-                      link.target = "_blank"; // Opens the link in a new tab
-                      link.style.textDecoration = "underline"; // Style for link
-                      link.style.color = "blue"; // Style for link
-                      link.addEventListener("click", (event) => {
-                        // console.log("clickeddddd")
-                        link.href = str;
-                        link.target = "_blank"
-                        span.contentEditable = "false"
-                        event.stopPropagation();
-                      });
-                      link.style.cursor = "pointer"
-                      span.appendChild(link);
+                    if (Math.abs(currentY - lastY) <= tolerance) {
+                      currentParagraph.push(item);
                     } else {
-                      const merge=str.split('')
-                      // console.log(merge,"merge123")
-                      span.textContent = str;
+                      if (currentParagraph.length > 0) {
+                        paragraphs.push([...currentParagraph]);
+                        currentParagraph = [];
+                      }
+                      currentParagraph.push(item);
                     }
-                    // span.textContent = str;
-                    span.style.fontSize = `${fontScaleX * viewport.scale
-                      }px`;
-                    span.style.color = "black"; // Default color
-                    span.style.whiteSpace = "nowrap";
-                    span.style.position = "absolute";
-                    span.style.lineHeight = "1";
 
-                    const ctx = canvas.getContext("2d");
-                    const imageData = ctx.getImageData(
-                      adjustedX,
-                      adjustedY - fontScaleY * viewport.scale,
-                      fontScaleX * viewport.scale,
-                      fontScaleY * viewport.scale
-                    );
+                    lastY = currentY;
 
-
-                    const averageBg = getAverageBackgroundColor(imageData.data)
-                    // console.log(
-                    //   `Text: "${str}", Color: ${averageBg}`
-                    // );
-                    span.style.background = "white";
-                    span.style.fontFamily = item?.fontName;
-                    div.appendChild(span);
-                    div.style.position = "absolute";
-                    div.className = "MainDiv";
-
-                    div.style.width = `${item.width * viewport?.scale}px`;
-                    div.style.height = `${item.height * viewport?.scale
-                      }px`;
-
-                    span.style.width = `${item.width * viewport?.scale
-                      }px`;
-
-                    span.style.height = `${item.height * viewport?.scale
-                      }px`;
-
-                    span.style.left = `${adjustedX}px`;
-                    span.style.top = `${adjustedY - fontScaleY * viewport.scale
-                      }px`;
-                    // const ctx = canvas.getContext("2d");
-                    // const imageData = ctx.getImageData(
-                    //   adjustedX,
-                    //   adjustedY - fontScaleY * viewport.scale,
-                    //   fontScaleX * viewport.scale,
-                    //   fontScaleY * viewport.scale
-                    // );
-
-                    const textStyle = detectTextStyle(
-                      canvas.getContext("2d"),
-                      adjustedX,
-                      adjustedY - fontScaleY * viewport.scale,
-                      fontScaleX * viewport.scale,
-                      fontScaleY * viewport.scale
-                    );
-                    applyTextDecoration(span, textStyle);
-
-                    if (textStyle.includes("underlined")) {
-                      span.style.textDecoration = "underline";
+                    if (index === textItems.length - 1 && currentParagraph.length > 0) {
+                      paragraphs.push([...currentParagraph]);
                     }
-                    if (textStyle.includes("strikethrough")) {
-                      span.style.textDecoration =
-                        (span.style.textDecoration
-                          ? span.style.textDecoration + " "
-                          : "") + "line-through";
-                    }
-                    span.style.pointerEvents = "auto";
-                    span.contentEditable = "true";
-                    span.style.color = getAverageColor(imageData.data);
+                  });
 
-                    textLayer.appendChild(div);
+                  paragraphs.forEach((paragraph) => {
+                    const paragraphDiv = document.createElement("div");
+                    paragraphDiv.className = "paragraph";
+                    paragraphDiv.contentEditable = "true";
+                    paragraphDiv.style.position = "relative";
+                    paragraphDiv.style.display = "inline-block";
+                    paragraphDiv.style.cursor = "text";
+                    paragraphDiv.style.backgroundColor = "transparent"
+                    let minX = Infinity,
+                      minY = Infinity,
+                      maxX = -Infinity,
+                      maxY = -Infinity;
+
+                    paragraph.forEach((item) => {
+                      const { transform, str } = item;
+                      const [fontScaleX, , , fontScaleY, x, y] = transform;
+
+                      const adjustedX = x * viewport.scale;
+                      const adjustedY = viewport.height - y * viewport.scale;
+
+                      minX = Math.min(minX, adjustedX);
+                      minY = Math.min(minY, adjustedY);
+                      maxX = Math.max(maxX, adjustedX);
+                      maxY = Math.max(maxY, adjustedY);
+                      const ctx = canvas.getContext("2d");
+                      const imageData = ctx.getImageData(
+                        adjustedX,
+                        adjustedY - fontScaleY * viewport.scale,
+                        fontScaleX * viewport.scale,
+                        fontScaleY * viewport.scale
+                      );
+                      const span = document.createElement("span");
+                      span.className="editSpan"
+                      // span.textContent = str || "";
+                      span.style.fontSize = `${Math.abs(fontScaleY) * viewport.scale}px`;
+                      span.style.fontFamily = item?.fontName || "sans-serif";
+                      span.style.color = getAverageColor(imageData.data);
+                      span.style.position = "absolute";
+                      // span.style.left = `${adjustedX - minX}px`;
+                      // span.style.top = `${adjustedY - minY}px`;
+                      span.style.lineHeight = "1";
+                      span.style.pointerEvents = "auto";
+                      span.style.background = "white";
+                      span.style.pointerEvents = "auto";
+
+                      span.style.width = `${item.width * viewport.scale}px`;
+                      span.style.height = `${item.height * viewport.scale}px`;
+                      span.style.left = `${adjustedX}px`;
+                      span.style.top = `${adjustedY - fontScaleY * viewport.scale
+                        }px`;
+                      const urlRegex = /(https?:\/\/[^\s]+)/g;
+                      const isUrl = urlRegex.test(str);
+
+                      if (isUrl) {
+                        // Create a clickable link if the text is a URL
+                        const link = document.createElement("a");
+                        link.href = str;
+                        link.textContent = str;
+                        link.target = "_blank"; // Opens the link in a new tab
+                        link.style.textDecoration = "underline"; // Style for link
+                        link.style.color = "blue"; // Style for link
+                        link.addEventListener("click", (event) => {
+                          link.href = str;
+                          link.target = "_blank";
+                          span.contentEditable = "false"; // Disable editing when link is clicked
+                          event.stopPropagation(); // Prevent event bubbling
+                        });
+                        link.style.cursor = "pointer";
+                        span.appendChild(link); // Append the link inside the span
+                      } else {
+                        // Otherwise, just set the text content of the span
+                        span.textContent = str;
+                      }
+
+                      paragraphDiv.appendChild(span);
+                    });
+
+                    const paragraphWidth = maxX - minX;
+                    const paragraphHeight = maxY - minY;
+
+                    paragraphDiv.style.width = `${paragraphWidth}px`;
+                    paragraphDiv.style.height = `${paragraphHeight}px`;
+
+                    textLayer.appendChild(paragraphDiv);
                   });
                 });
               });
@@ -171,24 +169,22 @@ document
 
 editBtn.addEventListener("click", () => {
   document.querySelectorAll(".text-layer").forEach((textLayer) => {
-    textLayer.style.display = "block"; // Show the text layer
-    textLayer.style.pointerEvents = "auto"; // Enable editing
+    textLayer.style.display = "block";
+    textLayer.style.pointerEvents = "auto";
 
-    textLayer.querySelectorAll("span").forEach((span) => {
-      // console.log(span?.style.fontFamily, "fromEditablee11")
-      // console.log(span?.style.fontSize, "fromEditablee22")
-
+    textLayer.querySelectorAll(".paragraph").forEach((paragraph) => {
       downloadBtn.style.display = "block";
-      span.className = "editSpan";
-      span.contentEditable = "true"; // Make text editable
-      span.style.cursor = "text";
-      span.style.fontFamily = span.style.fontFamily
-      span.style.fontSize = span.style.fontSize
-
+      paragraph.className = "editParagraph";
+      paragraph.contentEditable = "true";
+      paragraph.style.cursor = "text";
+      paragraph.style.backgroundColor = "white";
+      paragraph.style.overflowWrap = "break-word";
+      paragraph.style.width = "auto";
+      paragraph.style.display = "inline-block";
     });
   });
 
-  editBtn.style.display = "none"; // Hide the Edit button
+  editBtn.style.display = "none";
 });
 
 function getAverageColor(imageData) {
@@ -205,8 +201,6 @@ function getAverageColor(imageData) {
       0.2126 * imageData[i] +
       0.7152 * imageData[i + 1] +
       0.0722 * imageData[i + 2];
-
-      // console.log(brightness,"brightNess++++")
     if (brightness < 128) {
       r += imageData[i];
       g += imageData[i + 1];
@@ -237,7 +231,6 @@ function getAverageBackgroundColor(imageData) {
       0.2126 * imageData[i] +
       0.7152 * imageData[i + 1] +
       0.0722 * imageData[i + 2];
-      console.log(brightness,"brightNessBack")
 
     if (brightness > 128) {
       r += imageData[i];
@@ -250,20 +243,12 @@ function getAverageBackgroundColor(imageData) {
 
   if (count === 0) return "rgb(255,255,255)";
 
-  // console.log(count, "count+++++++")
   const avgR = Math.round(r / count);
   const avgG = Math.round(g / count);
   const avgB = Math.round(b / count);
 
-  // console.log(`rgb(${avgR}, ${avgG}, ${avgB})`);
   return `rgb(${avgR}, ${avgG}, ${avgB})`;
 }
-
-
-
-
-
-
 
 function detectTextStyle(context, x, y, width, height) {
   const imageData = context.getImageData(x, y, width, height);
@@ -331,10 +316,7 @@ downloadBtn.addEventListener("click", () => {
   });
 
   const canvases = document.querySelectorAll("canvas");
-  // console.log(canvases, "canvases123");
   canvases.forEach((canvas, index) => {
-    // console.log(canvas, "canvasFromResulttt");
-    // Add the canvas as an image to the PDF
     const imgData = canvas.toDataURL("image/png");
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -349,28 +331,20 @@ downloadBtn.addEventListener("click", () => {
     const yOffset = (pageHeight - imgHeight) / 2;
 
     doc.addImage(imgData, "PNG", xOffset, yOffset, imgWidth, imgHeight);
-
-    // Add the editable text directly to the PDF
     const textLayer = canvas.parentNode.querySelector(".text-layer");
-    // console.log(textLayer, "textLayer123");
     if (textLayer) {
       const textElements = textLayer.getElementsByClassName("editSpan");
-      const textElements1 = textLayer.getElementsByClassName("MainDiv");
-
-      // Iterate over `textElements` (editSpan)
+      const textElements1 = textLayer.getElementsByClassName("editParagraph");
       [...textElements].forEach((span) => {
-        // console.log(span?.style, "style1111");
         const text = span.textContent;
         const left = parseFloat(span.style.left);
         const top = parseFloat(span.style.top);
         const width = parseFloat(span.style.width);
         const height = parseFloat(span.style.height);
         const fontFamily = span.style.fontFamily
-
         const fontSize = parseFloat(span.style.fontSize);
         const color = span.style.color;
-        // console.log(left, top, text, fontSize, color, "toShow");
-
+console.log(left,top,width,text,height,fontSize,color,"fromDwonloadddd")
         if (
           !isNaN(left) &&
           !isNaN(top) &&
@@ -395,13 +369,9 @@ downloadBtn.addEventListener("click", () => {
         }
       });
 
-      // Iterate over `textElements1` (MainDiv)
       [...textElements1].forEach((div) => {
-        // console.log(div, "MainDiv Element");
-
         const spans = div.getElementsByClassName("editSpan");
         [...spans].forEach((span) => {
-          // console.log(span?.style, "Nested style1111");
           const text = span.textContent;
           const left = parseFloat(span.style.left);
           const top = parseFloat(span.style.top);
@@ -412,12 +382,6 @@ downloadBtn.addEventListener("click", () => {
           const backgroundColor = span.style.backgroundColor;
           const color = span.style.color;
           const fontFamily = span.style.fontFamily
-          // console.log(
-          //   fontFamily,
-          //   height,
-          //   backgroundColor,
-          //   "Nested toShow"
-          // );
 
           if (
             !isNaN(left) &&
@@ -443,7 +407,7 @@ downloadBtn.addEventListener("click", () => {
                 width,
                 height,
                 "F"
-              ); // 'F' for fill
+              );
             }
 
             doc.text(text, x, y);
@@ -464,13 +428,7 @@ downloadBtn.addEventListener("click", () => {
   doc.save(fileName?.[0]);
 });
 
-
-
-
-
-
-// Helper function to check if the color is close to white
 function isColorCloseToWhite(color) {
   const [r, g, b] = color.match(/\d+/g).map(Number);
-  return r > 230 && g > 230 && b > 230; // Tolerance for "close to white"
+  return r > 230 && g > 230 && b > 230;
 }

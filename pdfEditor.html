@@ -10,12 +10,17 @@
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
     />
-    <link href="./pdfEditor.css" rel="stylesheet"/>
+    <link href="./pdfEditor.css" rel="stylesheet" />
   </head>
   <body>
     <input type="file" id="file-input" accept="application/pdf" />
     <button id="edit-btn" style="display: none">Edit PDF</button>
     <button id="download-btn" class="hidden">Download PDF</button>
+    <div id="toolbar" style="display: none; position: absolute; z-index: 1000">
+      <button id="bold-btn">B</button>
+      <button id="italic-btn">I</button>
+      <button id="underline-btn">U</button>
+    </div>
     <script src="./pdfEditor.js"></script>
   </body>
 </html>

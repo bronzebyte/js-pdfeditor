@@ -1,6 +1,9 @@
 const editBtn = document.getElementById("edit-btn");
 const downloadBtn = document.getElementById("download-btn");
 const fileName = []
+const underlineBtn = document.getElementById("underline-btn")
+const boldBtn=document.getElementById("bold-btn")
+const italicBtn=document.getElementById("italic-btn")
 document
   .getElementById("file-input")
   .addEventListener("change", function (event) {
@@ -154,7 +157,7 @@ document
 
                     paragraphDiv.style.width = `${paragraphWidth}px`;
                     paragraphDiv.style.height = `${paragraphHeight}px`;
-
+                    paragraphDiv.spellcheck = false
                     textLayer.appendChild(paragraphDiv);
                   });
                 });
@@ -432,3 +435,34 @@ function isColorCloseToWhite(color) {
   const [r, g, b] = color.match(/\d+/g).map(Number);
   return r > 230 && g > 230 && b > 230;
 }
+
+document.addEventListener("selectionchange", () => {
+  const selection = window.getSelection();
+  const selectedElement = selection?.anchorNode?.parentElement;
+
+  if (selectedElement && selectedElement.isContentEditable) {
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    const toolbar = document.getElementById("toolbar");
+    toolbar.style.display = "block";
+    toolbar.style.position = "absolute";
+    toolbar.style.background = "white";
+
+    toolbar.style.left = `${rect.left + window.scrollX}px`;
+    toolbar.style.top = `${rect.top + window.scrollY - 40}px`;
+  } else {
+    document.getElementById("toolbar").style.display = "none";
+  }
+});
+
+document.getElementById("underline-btn").addEventListener("click", () => {
+  document.execCommand("underline");
+});
+
+document.getElementById("bold-btn").addEventListener("click", () => {
+  document.execCommand("bold");
+});
+
+document.getElementById("italic-btn").addEventListener("click", () => {
+  document.execCommand("italic");
+});

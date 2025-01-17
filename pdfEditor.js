@@ -2,8 +2,8 @@ const editBtn = document.getElementById("edit-btn");
 const downloadBtn = document.getElementById("download-btn");
 const fileName = []
 const underlineBtn = document.getElementById("underline-btn")
-const boldBtn=document.getElementById("bold-btn")
-const italicBtn=document.getElementById("italic-btn")
+const boldBtn = document.getElementById("bold-btn")
+const italicBtn = document.getElementById("italic-btn")
 document
   .getElementById("file-input")
   .addEventListener("change", function (event) {
@@ -107,7 +107,7 @@ document
                         fontScaleY * viewport.scale
                       );
                       const span = document.createElement("span");
-                      span.className="editSpan"
+                      span.className = "editSpan"
                       // span.textContent = str || "";
                       span.style.fontSize = `${Math.abs(fontScaleY) * viewport.scale}px`;
                       span.style.fontFamily = item?.fontName || "sans-serif";
@@ -220,7 +220,6 @@ function getAverageColor(imageData) {
 
 
 function getAverageBackgroundColor(imageData) {
-  console.log(imageData, "imageData");
   let r = 0,
     g = 0,
     b = 0,
@@ -347,7 +346,6 @@ downloadBtn.addEventListener("click", () => {
         const fontFamily = span.style.fontFamily
         const fontSize = parseFloat(span.style.fontSize);
         const color = span.style.color;
-console.log(left,top,width,text,height,fontSize,color,"fromDwonloadddd")
         if (
           !isNaN(left) &&
           !isNaN(top) &&
@@ -465,4 +463,16 @@ document.getElementById("bold-btn").addEventListener("click", () => {
 
 document.getElementById("italic-btn").addEventListener("click", () => {
   document.execCommand("italic");
+});
+
+document.getElementById("font-size-select").addEventListener("change", (event) => {
+  const fontSize = event.target.value;
+  document.execCommand("fontSize", false, "7"); // Use a fixed value for compatibility
+  const fontElements = document.getElementsByTagName("font");
+  for (const fontElement of fontElements) {
+    if (fontElement.size === "7") {
+      fontElement.removeAttribute("size");
+      fontElement.style.fontSize = `${fontSize}px`;
+    }
+  }
 });
